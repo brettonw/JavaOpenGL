@@ -9,8 +9,6 @@ import com.jogamp.opengl.GL3;
 import com.jogamp.opengl.util.GLBuffers;
 import com.jogamp.opengl.util.glsl.ShaderCode;
 import com.jogamp.opengl.util.glsl.ShaderProgram;
-import com.brettonw.framework.Framework;
-import com.brettonw.framework.Semantic;
 import glm.vec._4.Vec4;
 import glutil.BufferUtils;
 
@@ -24,12 +22,13 @@ import static com.jogamp.opengl.GL2ES3.GL_COLOR;
 
 public class HelloTriangle extends Framework {
 
-    private final String SHADERS_ROOT = "src/tut01/main/shaders";
+    private final String SHADERS_ROOT = "src/main/shaders";
     private final String VERT_SHADER_SOURCE = "vertex-shader";
     private final String FRAG_SHADER_SOURCE = "fragment-shader";
+    private static final int POSITION = 0;
 
     public static void main(String[] args) {
-        new HelloTriangle("Tutorial 01 - Hello Triangle");
+        new HelloTriangle("Hello Triangle");
     }
 
     public HelloTriangle (String title) {
@@ -64,10 +63,8 @@ public class HelloTriangle extends Framework {
 
         ShaderProgram shaderProgram = new ShaderProgram();
 
-        ShaderCode vertShaderCode = ShaderCode.create(gl3, GL_VERTEX_SHADER, this.getClass(), SHADERS_ROOT, null,
-                VERT_SHADER_SOURCE, "vert", null, true);
-        ShaderCode fragShaderCode = ShaderCode.create(gl3, GL_FRAGMENT_SHADER, this.getClass(), SHADERS_ROOT, null,
-                FRAG_SHADER_SOURCE, "frag", null, true);
+        ShaderCode vertShaderCode = ShaderCode.create(gl3, GL_VERTEX_SHADER, this.getClass(), SHADERS_ROOT, null, VERT_SHADER_SOURCE, "vert", null, true);
+        ShaderCode fragShaderCode = ShaderCode.create(gl3, GL_FRAGMENT_SHADER, this.getClass(), SHADERS_ROOT, null, FRAG_SHADER_SOURCE, "frag", null, true);
 
         shaderProgram.add(vertShaderCode);
         shaderProgram.add(fragShaderCode);
@@ -108,12 +105,12 @@ public class HelloTriangle extends Framework {
         gl3.glUseProgram(theProgram);
 
         gl3.glBindBuffer(GL_ARRAY_BUFFER, positionBufferObject.get(0));
-        gl3.glEnableVertexAttribArray(Semantic.Attr.POSITION);
-        gl3.glVertexAttribPointer(Semantic.Attr.POSITION, 4, GL_FLOAT, false, Vec4.SIZE, 0);
+        gl3.glEnableVertexAttribArray(POSITION);
+        gl3.glVertexAttribPointer(POSITION, 4, GL_FLOAT, false, Vec4.SIZE, 0);
 
         gl3.glDrawArrays(GL_TRIANGLES, 0, 3);
 
-        gl3.glDisableVertexAttribArray(Semantic.Attr.POSITION);
+        gl3.glDisableVertexAttribArray(POSITION);
         gl3.glUseProgram(0);
     }
 

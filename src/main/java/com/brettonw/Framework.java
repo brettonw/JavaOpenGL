@@ -3,7 +3,7 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package com.brettonw.framework;
+package com.brettonw;
 
 import com.jogamp.newt.Display;
 import com.jogamp.newt.NewtFactory;
