@@ -25,7 +25,7 @@ import static com.jogamp.opengl.GL2ES2.GL_FRAGMENT_SHADER;
 import static com.jogamp.opengl.GL2ES2.GL_VERTEX_SHADER;
 import static com.jogamp.opengl.GL2ES3.GL_COLOR;
 
-public class Application implements GLEventListener, KeyListener, MouseListener {
+public class Application implements GLEventListener {
 
     private final String SHADERS_ROOT = "src/main/shaders";
     private final String VERT_SHADER_SOURCE = "vertex-shader";
@@ -49,7 +49,7 @@ public class Application implements GLEventListener, KeyListener, MouseListener 
     public Application (String title) {
         Display display = NewtFactory.createDisplay(null);
         Screen screen = NewtFactory.createScreen(display, 0);
-        GLProfile glProfile = GLProfile.get(GLProfile.GL3);
+        GLProfile glProfile = GLProfile.get(GLProfile.GL2ES1);
         GLCapabilities glCapabilities = new GLCapabilities(glProfile);
 
         glWindow = GLWindow.create(screen, glCapabilities);
@@ -73,8 +73,6 @@ public class Application implements GLEventListener, KeyListener, MouseListener 
         }
 
         glWindow.addGLEventListener(this);
-        glWindow.addKeyListener(this);
-        glWindow.addMouseListener(this);
 
         animator = new Animator();
         animator.add(glWindow);
@@ -90,77 +88,77 @@ public class Application implements GLEventListener, KeyListener, MouseListener 
 
     @Override
     public final void init(GLAutoDrawable drawable) {
-        GL3 gl3 = drawable.getGL().getGL3();
+        GL3 gl = drawable.getGL().getGL3();
 
-        initializeProgram(gl3);
+        initializeProgram(gl);
 
-        initializeVertexBuffer(gl3);
+        initializeVertexBuffer(gl);
 
-        gl3.glGenVertexArrays(1, vao);
-        gl3.glBindVertexArray(vao.get(0));
+        gl.glGenVertexArrays(1, vao);
+        gl.glBindVertexArray(vao.get(0));
     }
 
-    private void initializeProgram(GL3 gl3) {
+    private void initializeProgram(GL3 gl) {
         ShaderProgram shaderProgram = new ShaderProgram();
 
-        ShaderCode vertShaderCode = ShaderCode.create(gl3, GL_VERTEX_SHADER, this.getClass(), SHADERS_ROOT, null, VERT_SHADER_SOURCE, "vert", null, true);
-        ShaderCode fragShaderCode = ShaderCode.create(gl3, GL_FRAGMENT_SHADER, this.getClass(), SHADERS_ROOT, null, FRAG_SHADER_SOURCE, "frag", null, true);
+        ShaderCode vertShaderCode = ShaderCode.create(gl, GL_VERTEX_SHADER, this.getClass(), SHADERS_ROOT, null, VERT_SHADER_SOURCE, "vert", null, true);
+        ShaderCode fragShaderCode = ShaderCode.create(gl, GL_FRAGMENT_SHADER, this.getClass(), SHADERS_ROOT, null, FRAG_SHADER_SOURCE, "frag", null, true);
 
         shaderProgram.add(vertShaderCode);
         shaderProgram.add(fragShaderCode);
 
-        shaderProgram.link(gl3, System.out);
+        shaderProgram.link(gl, System.out);
 
         theProgram = shaderProgram.program();
 
-        vertShaderCode.destroy(gl3);
-        fragShaderCode.destroy(gl3);
+        vertShaderCode.destroy(gl);
+        fragShaderCode.destroy(gl);
     }
 
-    private void initializeVertexBuffer(GL3 gl3) {
+    private void initializeVertexBuffer(GL3 gl) {
         FloatBuffer vertexBuffer = GLBuffers.newDirectFloatBuffer(vertexPositions);
 
-        gl3.glGenBuffers(1, positionBufferObject);
+        gl.glGenBuffers(1, positionBufferObject);
 
-        gl3.glBindBuffer(GL_ARRAY_BUFFER, positionBufferObject.get(0));
-        gl3.glBufferData(GL_ARRAY_BUFFER, vertexBuffer.capacity() * Float.BYTES, vertexBuffer, GL_STATIC_DRAW);
-        gl3.glBindBuffer(GL_ARRAY_BUFFER, 0);
+        gl.glBindBuffer(GL_ARRAY_BUFFER, positionBufferObject.get(0));
+        gl.glBufferData(GL_ARRAY_BUFFER, vertexBuffer.capacity() * Float.BYTES, vertexBuffer, GL_STATIC_DRAW);
+        gl.glBindBuffer(GL_ARRAY_BUFFER, 0);
 
         BufferUtils.destroyDirectBuffer(vertexBuffer);
     }
 
     @Override
     public final void display(GLAutoDrawable drawable) {
-        GL3 gl3 = drawable.getGL().getGL3();
+        GL3 gl = drawable.getGL().getGL3();
 
-        gl3.glClearBufferfv(GL_COLOR, 0, clearColor.put(0, 0.0f).put(1, 0.0f).put(2, 0.0f).put(3, 1.0f));
+        gl.glClearBufferfv(GL_COLOR, 0, clearColor.put(0, 0.0f).put(1, 0.0f).put(2, 0.0f).put(3, 1.0f));
 
-        gl3.glUseProgram(theProgram);
+        gl.glUseProgram(theProgram);
 
-        gl3.glBindBuffer(GL_ARRAY_BUFFER, positionBufferObject.get(0));
-        gl3.glEnableVertexAttribArray(POSITION);
-        gl3.glVertexAttribPointer(POSITION, 4, GL_FLOAT, false, Vec4.SIZE, 0);
+        gl.glBindBuffer(GL_ARRAY_BUFFER, positionBufferObject.get(0));
+        gl.glEnableVertexAttribArray(POSITION);
+        gl.glVertexAttribPointer(POSITION, 4, GL_FLOAT, false, Vec4.SIZE, 0);
 
-        gl3.glDrawArrays(GL_TRIANGLES, 0, 3);
+        gl.glDrawArrays(GL_TRIANGLES, 0, 3);
 
-        gl3.glDisableVertexAttribArray(POSITION);
-        gl3.glUseProgram(0);
+        gl.glDisableVertexAttribArray(POSITION);
+        gl.glUseProgram(0);
     }
 
     @Override
     public final void reshape(GLAutoDrawable drawable, int x, int y, int width, int height) {
-        GL3 gl3 = drawable.getGL().getGL3();
-        gl3.glViewport(0, 0, width, height);
+        GL3 gl = drawable.getGL().getGL3();
+        gl.glViewport(0, 0, width, height);
     }
 
     @Override
     public final void dispose(GLAutoDrawable drawable) {
 
-        GL3 gl3 = drawable.getGL().getGL3();
+        GL3 gl = drawable.getGL().getGL3();
 
-        gl3.glDeleteProgram(theProgram);
-        gl3.glDeleteBuffers(1, positionBufferObject);
-        gl3.glDeleteVertexArrays(1, vao);
+        gl.glDeleteProgram(theProgram);
+        gl.glDeleteBuffers(1, positionBufferObject);
+        gl.glDeleteVertexArrays(1, vao);
 
         BufferUtils.destroyDirectBuffer(positionBufferObject);
         BufferUtils.destroyDirectBuffer(vao);
@@ -171,59 +169,6 @@ public class Application implements GLEventListener, KeyListener, MouseListener 
         BufferUtils.destroyDirectBuffer(vecBuffer);
 
         System.exit(0);
-    }
-
-    @Override
-    public void keyPressed(KeyEvent keyEvent) {
-        switch (keyEvent.getKeyCode()) {
-            case KeyEvent.VK_ESCAPE:
-                animator.remove(glWindow);
-                glWindow.destroy();
-                break;
-        }
-    }
-
-    @Override
-    public void keyReleased(KeyEvent e) {
-    }
-
-    @Override
-    public void mouseClicked(MouseEvent e) {
-
-    }
-
-    @Override
-    public void mouseEntered(MouseEvent e) {
-
-    }
-
-    @Override
-    public void mouseExited(MouseEvent e) {
-
-    }
-
-    @Override
-    public void mousePressed(MouseEvent e) {
-
-    }
-
-    @Override
-    public void mouseReleased(MouseEvent e) {
-
-    }
-
-    @Override
-    public void mouseMoved(MouseEvent e) {
-
-    }
-
-    @Override
-    public void mouseDragged(MouseEvent e) {
-
-    }
-
-    @Override
-    public void mouseWheelMoved(MouseEvent e) {
     }
 
 }
