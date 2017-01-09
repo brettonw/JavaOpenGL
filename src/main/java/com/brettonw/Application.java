@@ -4,13 +4,18 @@
  */
 package com.brettonw;
 
-import com.jogamp.newt.event.KeyEvent;
-import com.jogamp.opengl.GL3;
+import com.jogamp.newt.*;
+import com.jogamp.newt.event.*;
+import com.jogamp.newt.opengl.GLWindow;
+import com.jogamp.opengl.*;
+import com.jogamp.opengl.util.Animator;
 import com.jogamp.opengl.util.GLBuffers;
 import com.jogamp.opengl.util.glsl.ShaderCode;
 import com.jogamp.opengl.util.glsl.ShaderProgram;
+import glm.vec._2.i.Vec2i;
 import glm.vec._4.Vec4;
 import glutil.BufferUtils;
+import glutil.GlDebugOutput;
 
 import java.nio.FloatBuffer;
 import java.nio.IntBuffer;
@@ -20,19 +25,60 @@ import static com.jogamp.opengl.GL2ES2.GL_FRAGMENT_SHADER;
 import static com.jogamp.opengl.GL2ES2.GL_VERTEX_SHADER;
 import static com.jogamp.opengl.GL2ES3.GL_COLOR;
 
-public class HelloTriangle extends Framework {
+public class Application implements GLEventListener, KeyListener, MouseListener {
 
     private final String SHADERS_ROOT = "src/main/shaders";
     private final String VERT_SHADER_SOURCE = "vertex-shader";
     private final String FRAG_SHADER_SOURCE = "fragment-shader";
     private static final int POSITION = 0;
 
+    private final boolean DEBUG = false;
+    protected GLWindow glWindow;
+    protected Animator animator;
+    protected Vec2i windowSize = new Vec2i(500);
+    protected FloatBuffer clearColor = GLBuffers.newDirectFloatBuffer(4),
+            clearDepth = GLBuffers.newDirectFloatBuffer(1);
+    public static FloatBuffer matBuffer = GLBuffers.newDirectFloatBuffer(16),
+            vecBuffer = GLBuffers.newDirectFloatBuffer(4);
+
+
     public static void main(String[] args) {
-        new HelloTriangle("Hello Triangle");
+        new Application ("Hello World");
     }
 
-    public HelloTriangle (String title) {
-        super(title);
+    public Application (String title) {
+        Display display = NewtFactory.createDisplay(null);
+        Screen screen = NewtFactory.createScreen(display, 0);
+        GLProfile glProfile = GLProfile.get(GLProfile.GL3);
+        GLCapabilities glCapabilities = new GLCapabilities(glProfile);
+
+        glWindow = GLWindow.create(screen, glCapabilities);
+
+        if (DEBUG) {
+            glWindow.setContextCreationFlags(GLContext.CTX_OPTION_DEBUG);
+        }
+
+        glWindow.setUndecorated(false);
+        glWindow.setAlwaysOnTop(false);
+        glWindow.setFullscreen(false);
+        glWindow.setPointerVisible(true);
+        glWindow.confinePointer(false);
+        glWindow.setTitle(title);
+        glWindow.setSize(windowSize.x, windowSize.y);
+
+        glWindow.setVisible(true);
+
+        if (DEBUG) {
+            glWindow.getContext().addGLDebugListener(new GlDebugOutput ());
+        }
+
+        glWindow.addGLEventListener(this);
+        glWindow.addKeyListener(this);
+        glWindow.addMouseListener(this);
+
+        animator = new Animator();
+        animator.add(glWindow);
+        animator.start();
     }
 
     private int theProgram;
@@ -42,14 +88,9 @@ public class HelloTriangle extends Framework {
         +0.75f, -0.75f, 0.0f, 1.0f,
         -0.75f, -0.75f, 0.0f, 1.0f};
 
-    /**
-     * Called after the window and OpenGL are initialized. Called exactly once,
-     * before the main loop.
-     *
-     * @param gl3
-     */
     @Override
-    public void init(GL3 gl3) {
+    public final void init(GLAutoDrawable drawable) {
+        GL3 gl3 = drawable.getGL().getGL3();
 
         initializeProgram(gl3);
 
@@ -60,7 +101,6 @@ public class HelloTriangle extends Framework {
     }
 
     private void initializeProgram(GL3 gl3) {
-
         ShaderProgram shaderProgram = new ShaderProgram();
 
         ShaderCode vertShaderCode = ShaderCode.create(gl3, GL_VERTEX_SHADER, this.getClass(), SHADERS_ROOT, null, VERT_SHADER_SOURCE, "vert", null, true);
@@ -78,7 +118,6 @@ public class HelloTriangle extends Framework {
     }
 
     private void initializeVertexBuffer(GL3 gl3) {
-
         FloatBuffer vertexBuffer = GLBuffers.newDirectFloatBuffer(vertexPositions);
 
         gl3.glGenBuffers(1, positionBufferObject);
@@ -90,15 +129,9 @@ public class HelloTriangle extends Framework {
         BufferUtils.destroyDirectBuffer(vertexBuffer);
     }
 
-    /**
-     * Called to update the display. You don't need to swap the buffers after
-     * all of your rendering to display what you rendered, it is done
-     * automatically.
-     *
-     * @param gl3
-     */
     @Override
-    public void display(GL3 gl3) {
+    public final void display(GLAutoDrawable drawable) {
+        GL3 gl3 = drawable.getGL().getGL3();
 
         gl3.glClearBufferfv(GL_COLOR, 0, clearColor.put(0, 0.0f).put(1, 0.0f).put(2, 0.0f).put(3, 1.0f));
 
@@ -114,28 +147,16 @@ public class HelloTriangle extends Framework {
         gl3.glUseProgram(0);
     }
 
-    /**
-     * Called whenever the window is resized. The new window size is given, in
-     * pixels. This is an opportunity to call glViewport or glScissor to keep up
-     * with the change in size.
-     *
-     * @param gl3
-     * @param w
-     * @param h
-     */
     @Override
-    public void reshape(GL3 gl3, int w, int h) {
-
-        gl3.glViewport(0, 0, w, h);
+    public final void reshape(GLAutoDrawable drawable, int x, int y, int width, int height) {
+        GL3 gl3 = drawable.getGL().getGL3();
+        gl3.glViewport(0, 0, width, height);
     }
 
-    /**
-     * Called at the end, here you want to clean all the resources.
-     *
-     * @param gl3
-     */
     @Override
-    protected void end(GL3 gl3) {
+    public final void dispose(GLAutoDrawable drawable) {
+
+        GL3 gl3 = drawable.getGL().getGL3();
 
         gl3.glDeleteProgram(theProgram);
         gl3.glDeleteBuffers(1, positionBufferObject);
@@ -143,18 +164,17 @@ public class HelloTriangle extends Framework {
 
         BufferUtils.destroyDirectBuffer(positionBufferObject);
         BufferUtils.destroyDirectBuffer(vao);
+
+        BufferUtils.destroyDirectBuffer(clearColor);
+        BufferUtils.destroyDirectBuffer(clearDepth);
+        BufferUtils.destroyDirectBuffer(matBuffer);
+        BufferUtils.destroyDirectBuffer(vecBuffer);
+
+        System.exit(0);
     }
 
-    /**
-     * Called whenever a key on the keyboard was pressed. The key is given by
-     * the KeyCode(). It's often a good idea to have the escape key to exit the
-     * program.
-     *
-     * @param keyEvent
-     */
     @Override
     public void keyPressed(KeyEvent keyEvent) {
-
         switch (keyEvent.getKeyCode()) {
             case KeyEvent.VK_ESCAPE:
                 animator.remove(glWindow);
@@ -162,4 +182,48 @@ public class HelloTriangle extends Framework {
                 break;
         }
     }
+
+    @Override
+    public void keyReleased(KeyEvent e) {
+    }
+
+    @Override
+    public void mouseClicked(MouseEvent e) {
+
+    }
+
+    @Override
+    public void mouseEntered(MouseEvent e) {
+
+    }
+
+    @Override
+    public void mouseExited(MouseEvent e) {
+
+    }
+
+    @Override
+    public void mousePressed(MouseEvent e) {
+
+    }
+
+    @Override
+    public void mouseReleased(MouseEvent e) {
+
+    }
+
+    @Override
+    public void mouseMoved(MouseEvent e) {
+
+    }
+
+    @Override
+    public void mouseDragged(MouseEvent e) {
+
+    }
+
+    @Override
+    public void mouseWheelMoved(MouseEvent e) {
+    }
+
 }
