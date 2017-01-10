@@ -4,8 +4,9 @@
  */
 package com.brettonw;
 
-import com.jogamp.newt.*;
-import com.jogamp.newt.event.*;
+import com.jogamp.newt.Display;
+import com.jogamp.newt.NewtFactory;
+import com.jogamp.newt.Screen;
 import com.jogamp.newt.opengl.GLWindow;
 import com.jogamp.opengl.*;
 import com.jogamp.opengl.util.Animator;
@@ -49,7 +50,7 @@ public class Application implements GLEventListener {
     public Application (String title) {
         Display display = NewtFactory.createDisplay(null);
         Screen screen = NewtFactory.createScreen(display, 0);
-        GLProfile glProfile = GLProfile.get(GLProfile.GL2ES1);
+        GLProfile glProfile = GLProfile.get(GLProfile.GL3);
         GLCapabilities glCapabilities = new GLCapabilities(glProfile);
 
         glWindow = GLWindow.create(screen, glCapabilities);
